@@ -14,7 +14,7 @@ public class StageCtrl : MonoBehaviour
 
     public float stagespeed = 1;
     private float stageProgressTime = 0;
-    //インスタンス化する
+    //インスタンス化する(scriptableObjectでの参照がうまくいかなかったため)
     private static StageCtrl instance;
     public static StageCtrl Instance { get => instance; }
 
@@ -23,7 +23,11 @@ public class StageCtrl : MonoBehaviour
     public bool isBossAppear;
 
     int score = 0;
-    [SerializeField] UnityEngine.UI.Text ScoreValue = default;
+
+    public event System.Action<string> PlayerDeathHandler;
+    public event System.Action<string> GameClearHandler;
+    public event System.Action<string> BossAppearHandler;
+    public event System.Action<int> HighScoreUpdateHandler;
 
     public enum PlayStopCodeDef
     {
@@ -48,14 +52,21 @@ public class StageCtrl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        CallbackScoreUpdate();
+        if (isBossAppear)
+        {
+            CallbackBoss();
+        }
         if (playerObj.isDead)
         {
             playStopCode = PlayStopCodeDef.PlayerDead;
+            CallbackDeath();
             isPlaying = false;
         }
         if (isStageBossDead)
         {
             playStopCode = PlayStopCodeDef.BossDefeat;
+            CallbackClear();
             isPlaying = false;
         }
         if (!isPlaying) return;
@@ -99,11 +110,31 @@ public class StageCtrl : MonoBehaviour
     public void SetScore(int _val)
     {
         score = _val;
-        ScoreValue.text = $"{score:000000}";
     }
 
     public int GetScore()
     {
         return score;
+    }
+
+    private void CallbackDeath()
+    {
+        //Debug.Log("Death");
+        PlayerDeathHandler?.Invoke("DeathCallBack");
+    }
+
+    private void CallbackClear()
+    {
+        GameClearHandler?.Invoke("ClearCallBack");
+    }
+
+    private void CallbackBoss()
+    {
+        BossAppearHandler?.Invoke("AppearCallBack");
+    }
+
+    private void CallbackScoreUpdate()
+    {
+        HighScoreUpdateHandler?.Invoke(score);
     }
 }

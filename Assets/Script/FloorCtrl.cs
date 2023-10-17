@@ -7,13 +7,14 @@ public class FloorCtrl : MonoBehaviour
     readonly float areaSizeZ = 3.42f * 8;
 
     Vector3 basepos;
-    StageCtrl stage;
+
+    [SerializeField] 
+    private StageCtrl stage;
 
     // Start is called before the first frame update
     void Start()
     {
         basepos = transform.position;
-        stage = StageCtrl.Instance;
     }
 
     // Update is called once per frame

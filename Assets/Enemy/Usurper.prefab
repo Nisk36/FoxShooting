@@ -1370,7 +1370,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b6eb96d6dbd5944a835c31392a74e30, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  enemyHp: 65
+  enemyHp: 75
   isBoss: 0
   scorePoint: 10000
   _renderer: {fileID: 6655801840602860273}

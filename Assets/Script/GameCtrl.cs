@@ -1,27 +1,29 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class GameCtrl : MonoBehaviour
 {
-    [SerializeField] private GameObject titleuiset = default;
-    [SerializeField] private GameObject gameclearuiset = default;
-    [SerializeField] private GameObject gameoveruiset = default;
-    [SerializeField] private GameObject scoreuiset = default;
-    [SerializeField] private GameObject resultuiset = default;
-    [SerializeField] private GameObject bgm = default;
-    [SerializeField] private GameObject bossbgm = default;
+    [SerializeField] 
+    private UIManager uiManager = null;
 
+    [SerializeField] 
+    private StageCtrl stageCtrl = null;
 
-    public Text scoreText;
-    public Text highScoreText;
-
-    //�n�C�X�R�A�ۑ�
+    [SerializeField] 
+    private BGMManager bgmManager = null;
+    
+    //ハイスコア保存
     private int highScore;
-
     private string highScoreKey = "highScore";
+    //コールバックの結果受け取り用変数
+    private bool isBoss;
+    private bool isDead;
+    private bool isClear;
+    private int score;
 
     public enum GameState
     {
@@ -37,8 +39,15 @@ public class GameCtrl : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        bgm.SetActive(false);
-        bossbgm.SetActive(false);
+        if (uiManager != null)
+        {
+            uiManager.InitializeUI();
+        }
+
+        if (bgmManager != null)
+        {
+            bgmManager.InitializeBGM();
+        }
         gameProcList = new Dictionary<GameState, gameProc>
         {
             {GameState.TITLE, Title },
@@ -46,9 +55,13 @@ public class GameCtrl : MonoBehaviour
             {GameState.CLEAR, Clear },
             {GameState.GAMEOVER, GameOver },
         };
-        titleuiset.SetActive(true);
-        gamestate = GameState.TITLE;
         ScoreInitialize();
+        //コールバック登録
+        stageCtrl.PlayerDeathHandler += DeathCallBackMethod;
+        stageCtrl.GameClearHandler += ClearCallBackMethod;
+        stageCtrl.BossAppearHandler += BossCallBackMethod;
+        stageCtrl.HighScoreUpdateHandler += ScoreCallBackMethod;
+        InitializeCallbackVaries();
     }
 
     void ScoreInitialize()
@@ -59,6 +72,7 @@ public class GameCtrl : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        uiManager.SwitchUIView(gamestate, score, highScore);
         gameProcList[gamestate]();
         if (Input.GetKeyDown(KeyCode.Escape))
         {
@@ -71,53 +85,42 @@ public class GameCtrl : MonoBehaviour
         if (Input.GetButtonDown("Fire1"))
         {
             gamestate = GameState.GAMEMAIN;
-            StageCtrl.Instance.StageStart();
-            bgm.SetActive(true);
-            scoreuiset.SetActive(true);
-            titleuiset.SetActive(false);
+            InitializeCallbackVaries();
+            stageCtrl.StageStart();
+            bgmManager.PlayNormalBGM();
         }
     }
 
     private void GameMain()
     {
-        if (StageCtrl.Instance.isBossAppear)
+        //ScoreUI
+        uiManager.SetInGameScore(score);
+        
+        if (isBoss)
         {
-            bgm.SetActive(false);
-            bossbgm.SetActive(true);
+            bgmManager.PlayBossBGM();
         }
-        if (!StageCtrl.Instance.isPlaying)
+
+        if (isClear)
         {
-            if (highScore < StageCtrl.Instance.GetScore()) 
-            {
-                highScore = StageCtrl.Instance.GetScore();
-            }
-            if(StageCtrl.Instance.playStopCode == StageCtrl.PlayStopCodeDef.PlayerDead)
-            {
-                Time.timeScale = 0;
-                bgm.SetActive(false);
-                bossbgm.SetActive(false);
-                scoreuiset.SetActive(false);
-                gameoveruiset.SetActive(true);
-                resultuiset.SetActive(true);
-                ShowResult();
-                //naichilab.RankingLoader.Instance.SendScoreAndShowRanking(StageCtrl.Instance.GetScore());
-                gamestate = GameState.GAMEOVER;
-                highscoreSave();
-                Debug.Log(highScore);
-            }
-            else
-            {
-                Time.timeScale = 0;
-                bgm.SetActive(false);
-                bossbgm.SetActive(false);
-                scoreuiset.SetActive(false);
-                gameclearuiset.SetActive(true);
-                resultuiset.SetActive(true);
-                ShowResult();
-                //naichilab.RankingLoader.Instance.SendScoreAndShowRanking(StageCtrl.Instance.GetScore());
-                gamestate = GameState.CLEAR;
-                highscoreSave();
-            }
+            Time.timeScale = 0;
+            gamestate = GameState.CLEAR;
+            highscoreSave();
+            InitializeCallbackVaries();
+        }
+
+        if (isDead)
+        {
+            Time.timeScale = 0;
+            gamestate = GameState.GAMEOVER;
+            highscoreSave();
+            InitializeCallbackVaries();
+            Debug.Log(highScore);
+        }
+
+        if (highScore < score) 
+        {
+            highScore = score;
         }
     }
     private void Clear()
@@ -125,11 +128,8 @@ public class GameCtrl : MonoBehaviour
         if (Input.GetButtonDown("Fire1"))
         {
             gamestate = GameState.TITLE;
-            gameclearuiset.SetActive(false);
-            resultuiset.SetActive(false);
-            SceneManager.UnloadSceneAsync(1);
-            titleuiset.SetActive(true);
-            StageCtrl.Instance.ResetStage();
+            bgmManager.InitializeBGM();
+            stageCtrl.ResetStage();
             Time.timeScale = 1;
         }
     }
@@ -139,10 +139,8 @@ public class GameCtrl : MonoBehaviour
         if (Input.GetButtonDown("Fire1"))
         {
             gamestate = GameState.TITLE;
-            gameoveruiset.SetActive(false);
-            resultuiset.SetActive(false);
-            titleuiset.SetActive(true);
-            StageCtrl.Instance.ResetStage();
+            bgmManager.InitializeBGM();
+            stageCtrl.ResetStage();
             Time.timeScale = 1;
         }
     }
@@ -153,14 +151,34 @@ public class GameCtrl : MonoBehaviour
         PlayerPrefs.Save();
     }
 
-    int getHighScore()
+    void DeathCallBackMethod(string res)
     {
-        return highScore;
+        Debug.Log(isDead);
+        isDead = true;
     }
 
-    void ShowResult()
+    void ClearCallBackMethod(string res)
     {
-        scoreText.text = StageCtrl.Instance.GetScore().ToString();
-        highScoreText.text = getHighScore().ToString();
+        isClear = true;
     }
+
+    void BossCallBackMethod(string res)
+    {
+        isBoss = true;
+    }
+
+    void ScoreCallBackMethod(int res)
+    {
+        score = res;
+    }
+
+    void InitializeCallbackVaries()
+    {
+        isClear = false;
+        isBoss = false;
+        isDead = false;
+        score = 0;
+    }
+    
+    
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -8,6 +9,7 @@ using UnityEngine;
 public class StageSequencer : ScriptableObject
 {
     [SerializeField] private string filename = "";
+    [SerializeField] private StageCtrl stage = null;
 
     public enum CommandType
     {
@@ -27,11 +29,11 @@ public class StageSequencer : ScriptableObject
         public readonly uint arg3;
         public StageData(float _eventpos, string _command, float _x, float _y, uint _type)
         {
-            eventPos = _eventpos;//ŠÔ²
-            command = commandlist[_command];//ƒRƒ}ƒ“ƒh
-            arg1 = _x;//xÀ•W
-            arg2 = _y;//yÀ•W
-            arg3 = _type;//“G‚Ìí—Ş‚ğ•„†‚È‚µ®”‚Å
+            eventPos = _eventpos;//æ™‚é–“è»¸
+            command = commandlist[_command];//ã‚³ãƒãƒ³ãƒ‰
+            arg1 = _x;//xåº§æ¨™
+            arg2 = _y;//yåº§æ¨™
+            arg3 = _type;//æ•µã®ç¨®é¡ã‚’ç¬¦å·ãªã—æ•´æ•°ã§
         }
     }
 

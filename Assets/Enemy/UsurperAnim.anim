@@ -246,13 +246,6 @@ AnimationClip:
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
-  - time: 2
-    functionName: Shot
-    data: 
-    objectReferenceParameter: {fileID: 11400000, guid: f1edc83414bbb5444a5b075abf2a7106, type: 2}
-    floatParameter: 0
-    intParameter: 0
-    messageOptions: 0
   - time: 2.5
     functionName: Shot
     data: 
@@ -264,13 +257,6 @@ AnimationClip:
     functionName: Shot
     data: 
     objectReferenceParameter: {fileID: 11400000, guid: a34b142aaba1c4a4982022d7f5b621c6, type: 2}
-    floatParameter: 0
-    intParameter: 0
-    messageOptions: 0
-  - time: 3.5
-    functionName: Shot
-    data: 
-    objectReferenceParameter: {fileID: 11400000, guid: f1edc83414bbb5444a5b075abf2a7106, type: 2}
     floatParameter: 0
     intParameter: 0
     messageOptions: 0
@@ -303,13 +289,6 @@ AnimationClip:
     intParameter: 0
     messageOptions: 0
   - time: 6.5
-    functionName: Shot
-    data: 
-    objectReferenceParameter: {fileID: 11400000, guid: f1edc83414bbb5444a5b075abf2a7106, type: 2}
-    floatParameter: 0
-    intParameter: 0
-    messageOptions: 0
-  - time: 6.983333
     functionName: Shot
     data: 
     objectReferenceParameter: {fileID: 11400000, guid: f1edc83414bbb5444a5b075abf2a7106, type: 2}

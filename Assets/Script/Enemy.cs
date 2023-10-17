@@ -12,37 +12,40 @@ public class Enemy : MonoBehaviour
     ObjectPool enemyBulletPool;
     ObjectPool explosionPool;
 
-    /// <summary> ƒ}ƒeƒŠƒAƒ‹‚Ì‰ÁŽZFƒpƒ‰ƒ[ƒ^‚ÌID </summary>
+    /// <summary> ãƒžãƒ†ãƒªã‚¢ãƒ«ã®åŠ ç®—è‰²ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®ID </summary>
     private static readonly int PROPERTY_ADDITIVE_COLOR = Shader.PropertyToID("_AdditiveColor");
 
-    /// <summary> ƒ‚ƒfƒ‹‚ÌRenderer </summary>
+    /// <summary> ãƒ¢ãƒ‡ãƒ«ã®Renderer </summary>
     [SerializeField]
     private Renderer _renderer;
 
-    /// <summary> ƒ‚ƒfƒ‹‚Ìƒ}ƒeƒŠƒAƒ‹‚Ì•¡» </summary>
+    /// <summary> ãƒ¢ãƒ‡ãƒ«ã®ãƒžãƒ†ãƒªã‚¢ãƒ«ã®è¤‡è£½ </summary>
     private Material _material;
 
     private Sequence _seq;
 
     public AudioClip dieSE;
     public AudioClip damagedSE;
+    private StageCtrl stageCtrl;
 
     private void Awake()
     {
-        // material‚ÉƒAƒNƒZƒX‚µ‚ÄŽ©“®¶¬‚³‚ê‚éƒ}ƒeƒŠƒAƒ‹‚ð•ÛŽ
+        // materialã«ã‚¢ã‚¯ã‚»ã‚¹ã—ã¦è‡ªå‹•ç”Ÿæˆã•ã‚Œã‚‹ãƒžãƒ†ãƒªã‚¢ãƒ«ã‚’ä¿æŒ
         _material = _renderer.material;
+
+        stageCtrl = GameObject.FindGameObjectWithTag("stage").GetComponent<StageCtrl>();
     }
 
     void Start()
     {
-        enemyBulletPool = StageCtrl.Instance.enemyBulletPool;
-        explosionPool = StageCtrl.Instance.explosionPool;
+        enemyBulletPool = stageCtrl.enemyBulletPool;
+        explosionPool = stageCtrl.explosionPool;
     }
 
     // Update is called once per frame
     void Update()
     {
-        StageCtrl.Instance.isBossAppear = isBoss;
+        stageCtrl.isBossAppear = isBoss;
     }
     
     public void HideFromStage()
@@ -54,7 +57,7 @@ public class Enemy : MonoBehaviour
     {
         if(_other.tag == "playerbullet")
         {
-            //“–‚½‚Á‚½’e‚Ìˆ—
+            //å½“ãŸã£ãŸå¼¾ã®å‡¦ç†
             var poolObj =_other.transform.GetComponent<PoolContent>();
             AudioSource.PlayClipAtPoint(damagedSE, transform.position);
             poolObj.HideFromStage();
@@ -63,8 +66,8 @@ public class Enemy : MonoBehaviour
             if(enemyHp <= 0)
             {
                 AudioSource.PlayClipAtPoint(dieSE, transform.position);
-                StageCtrl.Instance.isStageBossDead = isBoss;
-                StageCtrl.Instance.AddScore(scorePoint);
+                stageCtrl.isStageBossDead = isBoss;
+                stageCtrl.AddScore(scorePoint);
                 explosionPool.Launch(transform.position, 0).GetComponent<ExplosionPartical>().PlayParticle();
                 HideFromStage();
             }
@@ -85,7 +88,7 @@ public class Enemy : MonoBehaviour
         {
             baseDirection = Vector3.SignedAngle(
                 Vector3.forward,
-                StageCtrl.Instance.playerObj.transform.localPosition - transform.localPosition,
+                stageCtrl.playerObj.transform.localPosition - transform.localPosition,
                 Vector3.up);
         }
         else
