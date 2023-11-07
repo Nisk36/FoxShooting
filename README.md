@@ -1,3 +1,3 @@
-公開先  
+デモムービー
 <br>
-https://unityroom.com/games/foxshooting_2021fall
+https://youtu.be/xRj2MEHaOZo
